@@ -1,2 +1,5 @@
-# exercises_done_in_class20232024
-A collection of programming exercises, assignments, and coursework from my Computer Science studies. It includes work in programming, mostly in C++. I’m keeping these as a record of my learning while continuing to work hard to develop my skills and build better and more advanced projects.
+A collection of programming exercises, assignments, and coursework from my Computer Science studies.
+
+Most of the work here is in C++.
+
+This repository keeps track of my learning, practice, and the programming foundation I’ve built along the way. I’m continuing to grow, learn, and build bigger things.
