@@ -1,0 +1,96 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+// Class for representing a matrix
+class matrix {
+private:
+    vector<vector<int>> matrix; // 2D vector to store the matrix elements
+    int n = 0; // Size of the matrix
+
+public:
+    // Function to input matrix elements
+    void scan() {
+        cin >> n; // Input size of the matrix
+        matrix.resize(n, vector<int>(n)); // Resize the matrix to n x n
+        // Input matrix elements
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                cin >> matrix[i][j];
+            }
+        }
+    }
+
+    // Function to print the matrix
+    void print() {
+        if (n == 0) {
+            cout << "No element in matrix can be printed.\n";
+            return;
+        }
+        // Print matrix elements
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                cout << matrix[i][j] << " ";
+            }
+            cout << endl;
+        }
+        cout << "\n";
+    }
+
+    // Function to rotate the matrix to the right
+    void right() {
+        if (n == 0) {
+            cout << "No element in matrix can be rotated.\n";
+            return;
+        }
+        vector<vector<int>> tmp; // Temporary matrix to store rotated elements
+        tmp.resize(n, vector<int>(n));
+        // Rotate the matrix to the right
+        for (int i = 0; i < n; i++) {
+            for (int j = 0; j < n; j++) {
+                tmp[i][j] = matrix[n - 1 - j][i];
+            }
+        }
+        matrix = tmp; // Update the matrix with the rotated elements
+    }
+
+    // Function to rotate the matrix to the left
+    void left() {
+        if (n == 0) {
+            cout << "No element in matrix can be rotated.\n";
+            return;
+        }
+        vector<vector<int>> tmp; // Temporary matrix to store rotated elements
+        tmp.resize(n, vector<int>(n));
+        // Rotate the matrix to the left (three times for 90-degree rotation)
+        for (int t = 0; t < 3; t++) {
+            for (int i = 0; i < n; i++) {
+                for (int j = 0; j < n; j++) {
+                    tmp[i][j] = matrix[n - 1 - j][i];
+                }
+            }
+            matrix = tmp; // Update the matrix with the rotated elements
+        }
+    }
+};
+
+// Main function
+int main() {
+    string str; // String for input command
+    matrix m; // Create a matrix object
+    // Loop to continuously accept commands until "stop" is entered
+    while (true) {
+        cin >> str; // Input command
+        if (str == "stop") return 0; // Terminate if command is "stop"
+        else if (str == "rotate") { // If command is "rotate"
+            string str2; // String for rotation direction
+            cin >> str2; // Input rotation direction
+            // Rotate the matrix based on rotation direction
+            if (str2 == "left") m.left();
+            else if (str2 == "right") m.right();
+            else cout << "unknown\n"; // Output unknown if invalid rotation direction
+        }
+        else if (str == "print") m.print(); // Print the matrix if command is "print"
+        else if (str == "scan") m.scan(); // Input matrix elements if command is "scan"
+        else cout << "unknown\n"; // Output unknown if invalid command
+    }
+}

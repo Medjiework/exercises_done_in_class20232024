@@ -1,0 +1,195 @@
+#include <iostream>
+#include <cstdlib>
+#include <ctime>
+#include <vector>
+#include <stack>
+
+using namespace std;
+
+#define SIZE 10
+#define UP 0
+#define DOWN 1
+#define LEFT 2
+#define RIGHT 3
+
+class Grid {
+public:
+    Grid() {
+        Grid(0);
+    }
+
+    Grid(int s) {
+        state = s;
+        dir[UP] = nullptr;
+        dir[DOWN] = nullptr;
+        dir[LEFT] = nullptr;
+        dir[RIGHT] = nullptr;
+    }
+
+    Grid* getDir(int d) { return dir[d]; }
+    int getState() { return state; }
+    void setDir(int d, Grid* g) { dir[d] = g; }
+    void setState(int s) { state = s; }
+
+private:
+    Grid* dir[4]; // UP, DOWN, LEFT, RIGHT
+    int state;    // 0 for empty, 1 for wall
+};
+
+struct List {
+public:
+    List() {
+        top = 0;
+    }
+
+    // Insert an element from top
+    void addElement(Grid* g) {
+        if (top < SIZE * SIZE) {
+            data[top++] = g;
+        }
+    }
+
+    // Remove an element from top and return a pointer to the element.
+    // If list is empty, return NULL.
+    Grid* removeElement() {
+        if (top > 0) {
+            return data[--top]; // Return the last element and decrease top
+        }
+        return nullptr; // Return NULL if list is empty
+    }
+
+    void printPath() {
+        for (int j = 1; j < top; j++) {
+            if (data[j] == data[j - 1]->getDir(UP)) {
+                cout << "UP\n";
+            } else if (data[j] == data[j - 1]->getDir(DOWN)) {
+                cout << "DOWN\n";
+            } else if (data[j] == data[j - 1]->getDir(LEFT)) {
+                cout << "LEFT\n";
+            } else if (data[j] == data[j - 1]->getDir(RIGHT)) {
+                cout << "RIGHT\n";
+            }
+        }
+    }
+
+private:
+    Grid* data[SIZE * SIZE];
+    int top;
+};
+
+class Maze {
+public:
+    Maze() {
+        initMaze(SIZE);
+    }
+
+    void initMaze(int s) {
+        // Create a 2D array of Grid pointers
+        maze = new Grid**[s];
+        for (int i = 0; i < s; i++) {
+            maze[i] = new Grid*[s];
+        }
+
+        // Initialize all grids to empty (state 0)
+        for (int i = 0; i < s; i++) {
+            for (int j = 0; j < s; j++) {
+                maze[i][j] = new Grid(0);
+            }
+        }
+
+        // Randomly generate 20% walls
+        srand(time(0));
+        int wallCount = (s * s) / 5;
+        while (wallCount > 0) {
+            int r = rand() % s;
+            int c = rand() % s;
+            if ((r != 0 || c != 0) && (r != s - 1 || c != s - 1) && maze[r][c]->getState() == 0) {
+                maze[r][c]->setState(1); // Set wall
+                wallCount--;
+            }
+        }
+
+        // Set the directions for each Grid
+        for (int i = 0; i < s; i++) {
+            for (int j = 0; j < s; j++) {
+                if (i > 0) maze[i][j]->setDir(UP, maze[i - 1][j]); // Set UP
+                if (i < s - 1) maze[i][j]->setDir(DOWN, maze[i + 1][j]); // Set DOWN
+                if (j > 0) maze[i][j]->setDir(LEFT, maze[i][j - 1]); // Set LEFT
+                if (j < s - 1) maze[i][j]->setDir(RIGHT, maze[i][j + 1]); // Set RIGHT
+            }
+        }
+    }
+
+    List* getPath() {
+        List* path = new List();
+        bool visited[SIZE][SIZE] = { false };
+        stack<Grid*> stack;
+
+        // Start from (0, 0)
+        stack.push(maze[0][0]);
+        visited[0][0] = true;
+
+        // Directions for moving in the maze (up, down, left, right)
+        int directions[4][2] = { {0, -1}, {0, 1}, {-1, 0}, {1, 0} };
+        int moveDir[4] = { UP, DOWN, LEFT, RIGHT };
+
+        while (!stack.empty()) {
+            Grid* current = stack.top();
+            path->addElement(current);
+            stack.pop();
+
+            // If we've reached the end
+            if (current == maze[SIZE - 1][SIZE - 1]) {
+                return path; // Return the path found
+            }
+
+            // Explore neighbors
+            for (int i = 0; i < 4; i++) {
+                Grid* neighbor = current->getDir(moveDir[i]);
+                int newRow = (current == maze[0][0]) ? 0 : (current - maze[0][0]) / SIZE;
+                int newCol = (current == maze[0][0]) ? 0 : (current - maze[0][0]) % SIZE;
+
+                // Check bounds and wall conditions
+                if (neighbor && neighbor->getState() == 0 && !visited[newRow][newCol]) {
+                    visited[newRow][newCol] = true;
+                    stack.push(neighbor);
+                }
+            }
+        }
+
+        // If no path found, return empty list
+        delete path;
+        return new List(); // Return empty list
+    }
+
+    void printMaze() {
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                cout << maze[i][j]->getState() << " ";
+            }
+            cout << endl;
+        }
+    }
+
+    ~Maze() {
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                delete maze[i][j]; // Delete each Grid
+            }
+            delete[] maze[i]; // Delete each row
+        }
+        delete[] maze; // Delete the array of rows
+    }
+
+private:
+    Grid*** maze; // 2D array of Grid pointers
+};
+
+int main() {
+    Maze* maze = new Maze();
+    maze->printMaze();
+    maze->getPath()->printPath();
+
+    delete maze; // Clean up the maze
+    return 0;
+}

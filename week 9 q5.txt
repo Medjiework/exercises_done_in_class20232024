@@ -1,0 +1,21 @@
+int main() {
+  // Declare pointers to integers
+  int *a, *b;
+
+  // Initialize pointers using the `init` function
+  init(&a, &b); // The ampersands pass the addresses of the pointers
+
+  // Initialize sum to 0
+  int sum = 0;
+
+  // Loop through the elements pointed to by the pointers, from a to b (not inclusive)
+  for (int *i = a; i < b; i++) {
+    // Add the value of the element pointed to by i to the sum
+    sum += *i; // The dereference operator (*) accesses the value at the memory location pointed to by i
+  }
+
+  // Print the sum
+  printf("%d", sum);
+
+  return 0;
+}

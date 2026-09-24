@@ -1,0 +1,104 @@
+#include <iostream>
+#include <string>
+
+using namespace std;
+
+template<class T>
+class BinarySearchTree {
+private:
+  struct Node {
+    T data;
+    Node *left, *right;
+    Node(T d) : data(d), left(nullptr), right(nullptr) {}
+  };
+
+  Node *root;
+
+  void inorder(Node *cur) {
+    if(!cur)
+      return;
+    inorder(cur->left);
+    cout << cur->data << " ";
+    inorder(cur->right);
+  }
+
+public:
+  BinarySearchTree() : root(nullptr) {}
+
+  void insertElement(T d) {
+    if (!root) {
+      root = new Node(d);
+      return;
+    }
+    Node *cur = root, *parent = nullptr;
+    while (cur) {
+      parent = cur;
+      if (d < cur->data)
+        cur = cur->left;
+      else if (d > cur->data)
+        cur = cur->right;
+      else
+        return; // Element already in the tree
+    }
+    if (d < parent->data)
+      parent->left = new Node(d);
+    else
+      parent->right = new Node(d);
+  }
+
+  bool search(T d) {
+    Node *cur = root;
+    while (cur) {
+      if (cur->data == d)
+        return true;
+      else if (d < cur->data)
+        cur = cur->left;
+      else
+        cur = cur->right;
+    }
+    return false;
+  }
+
+  int height() {
+    return height(root);
+  }
+
+  int height(Node* cur) {
+    if (!cur) return -1;
+    return 1 + max(height(cur->left), height(cur->right));
+  }
+
+  void print() {
+    inorder(root);
+    cout << endl;
+  }
+};
+
+int main() {
+  int data;
+  string command;
+  BinarySearchTree<int> *bst = new BinarySearchTree<int>();
+  while(true) {
+    cin >> command;
+    if(command == "insert") {
+      cin >> data;
+      bst->insertElement(data);
+    }
+    else if(command == "search") {
+      cin >> data;
+      if(bst->search(data))
+        cout << "true" << endl;
+      else
+        cout << "false" << endl;
+    }
+    else if(command == "height") {
+      cout << bst->height() << endl;
+    }
+    else if(command == "print") {
+      bst->print();
+    }
+    else if(command == "exit") {
+      break;
+    }
+  }
+}

@@ -1,0 +1,38 @@
+int main() {
+ 
+  init();
+  char *str = s;
+  int sum = 0;
+  int tmp = 0;
+  char last = 'q'; // Initialize last character to a non-numeric value
+
+  // Loop through each character in the string
+  for (int i = 0; str[i] != '\0'; i++) {
+    if (str[i] >= '0' && str[i] <= '9') {
+      // If current character is a digit, check the previous character
+      if (!(last >= '0' && last <= '9')) {
+        // If previous character is not a digit, start a new number
+        tmp = str[i] - '0'; // Convert digit to integer
+      } else {
+        // If previous character is a digit, build the existing number
+        tmp *= 10;
+        tmp += str[i] - '0';
+      }
+    } else {
+      // If current character is not a digit, finalize the previous number
+      sum += tmp;
+      tmp = 0; // Reset temporary number
+    }
+
+    // Update last character for next iteration
+    last = str[i];
+  }
+
+  // Add the last number (if any)
+  sum += tmp;
+
+  // Print the sum
+  printf("%d", sum);
+
+  return 0;
+}

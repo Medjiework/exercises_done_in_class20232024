@@ -1,0 +1,280 @@
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+#define Size 40
+#define r first
+#define c second
+
+class Maze {
+    vector<vector<char>> maze;
+    vector<vector<int>> rec;
+    vector<pair<int, int>> mazePath;
+    vector<pair<int, int>> path;
+    int row, col, mazeRow, mazeCol, idx, rowLim, colLim;
+    
+public:
+    Maze(int _row, int _col, int _sRow, int _sCol) : 
+        maze(_row, vector<char>(_col * 2, 'N')), 
+        rec(Size, vector<int>(Size, 0)), 
+        path(Size * Size, pair<int, int>(-1, -1)),
+        mazePath(Size * Size, pair<int, int>(-1, -1)) {
+        
+        rowLim = _row;
+        colLim = _col;
+        
+        row = _sRow - 1;
+        col = _sCol - 1;
+        mazeRow = row;
+        mazeCol = col;
+        
+        createMaze();
+        
+        rec[row][col] = 1;
+        
+        idx = 0;
+        
+        path[idx].r = row;
+        path[idx].c = col;
+        mazePath[idx].r = mazeRow;
+        mazePath[idx++].c = mazeCol;
+        // cout << "startRow : " << row << "  |  startCol : " << col << "  |  " << "rowLim : " << rowLim << "  |  colLim : " << colLim << "\n";
+        // cout << "row : " << row << "  |  col : " << col << "  |  idx : " << idx << "\n";
+        // cout << "Mrow : " << mazeRow << "  |  Mcol : " << mazeCol << "  |  idx : " << idx << "\n\n";
+    }
+    
+    //  _ _ _
+    // |_|_|_|
+    // |_|_|_|
+    // |_|_|_|
+    void createMaze() {
+        for(int y = 0; y < rowLim; ++y) {
+            for(int x = 0; x < colLim * 2; x += 2) {
+                maze[y][x] = '_';
+                maze[y][x + 1] = '|';
+            }
+        }
+    }
+    
+    bool isEmpty() {
+        for(int i = 0; i < idx; ++i) {
+            if(path[i].r != -1 && path[i].c != -1) return false;
+        }
+        
+        return true;
+    }
+    
+    bool haveNeighbor(int row, int col) {
+        if(row + 1 < rowLim && !rec[row + 1][col]) return true;
+        if(row > 0 && !rec[row - 1][col]) return true;
+        if(col + 1 < colLim && !rec[row][col + 1]) return true;
+        if(col > 0 && !rec[row][col - 1]) return true;
+        
+        return false;
+    }
+    
+    bool killCell() {
+        if(idx == 0) return false;
+        
+        int pRow = path[idx - 1].r;
+        int pCol = path[idx - 1].c;
+        
+        if(!haveNeighbor(pRow, pCol)) {
+            path[idx - 1].r = -1;
+            path[idx - 1].c = -1;
+            mazePath[idx - 1].r = -1;
+            mazePath[idx - 1].c = -1;
+            
+            idx--;
+            
+            return true;
+        }
+        
+        return false;
+    }
+    
+    void up() {
+        row++;
+        mazeRow++;
+        // cout << "row : " << row << "  |  col : " << col << "  |  idx : " << idx << "\n";
+        // cout << "Mrow : " << mazeRow << "  |  Mcol : " << mazeCol << "  |  idx : " << idx << "\n\n";
+        
+        path[idx].r = row;
+        path[idx].c = col;
+        mazePath[idx].r = mazeRow;
+        mazePath[idx].c = mazeCol;
+        
+        idx++;
+        
+        maze[mazeRow][mazeCol] = ' ';
+        // printRes();
+        rec[row][col] = idx;
+    }
+    
+    void down() {
+        row--;
+        mazeRow--;
+        // cout << "row : " << row << "  |  col : " << col << "  |  idx : " << idx << "\n";
+        // cout << "Mrow : " << mazeRow << "  |  Mcol : " << mazeCol << "  |  idx : " << idx << "\n\n";
+        
+        path[idx].r = row;
+        path[idx].c = col;
+        mazePath[idx].r = mazeRow;
+        mazePath[idx].c = mazeCol;
+        
+        idx++;
+        
+        maze[mazeRow + 1][mazeCol] = ' ';
+        // printRes();
+        rec[row][col] = idx;
+    }
+    
+    void left() {
+        col--;
+        mazeCol -= 2;
+        // cout << "row : " << row << "  |  col : " << col << "  |  idx : " << idx << "\n";
+        // cout << "Mrow : " << mazeRow << "  |  Mcol : " << mazeCol << "  |  idx : " << idx << "\n\n";
+        
+        path[idx].r = row;
+        path[idx].c = col;
+        mazePath[idx].r = mazeRow;
+        mazePath[idx].c = mazeCol;
+        
+        idx++;
+        
+        maze[mazeRow][mazeCol + 1] = ' ';
+        // printRes();
+        rec[row][col] = idx;
+    }
+    
+    void right() {
+        col++;
+        mazeCol += 2;
+        // cout << "row : " << row << "  |  col : " << col << "  |  idx : " << idx << "\n";
+        // cout << "Mrow : " << mazeRow << "  |  Mcol : " << mazeCol << "  |  idx : " << idx << "\n\n";
+        
+        path[idx].r = row;
+        path[idx].c = col;
+        mazePath[idx].r = mazeRow;
+        mazePath[idx].c = mazeCol;
+        
+        idx++;
+        
+        maze[mazeRow][mazeCol - 1] = ' ';
+        // printRes();
+        rec[row][col] = idx;
+    }
+    
+    void flip(int start) {
+        row = path[start].r;
+        col = path[start].c;
+        mazeRow = mazePath[start].r;
+        mazeCol = mazePath[start].c;
+        
+        int left = start;
+        int right = idx - 1;
+        
+        while(left <= right) {
+            swap(path[left], path[right]);
+            swap(mazePath[left++], mazePath[right--]);
+        }
+    }
+    
+    void print() {
+        for(int i = 0; i < rowLim; ++i) {
+            for(int j = 0; j < colLim; ++j) {
+                cout << rec[i][j] << " ";
+            } cout << "\n";
+        }
+    }
+    
+    void printPath() {
+        cout << "path : \n";
+        for(int i = 0; i < 9; ++i) {
+            cout << "row : " << path[i].r << "  |  col : " << path[i].c << "  |  idx : " << i << "\n";
+        }
+    }
+    
+    void printMazePath() {
+        cout << "mazePath : \n";
+        for(int i = 0; i < Size * Size; ++i) {
+            if(mazePath[i].r == -1 && mazePath[i].c == -1) continue;
+            
+            cout << "row : " << mazePath[i].r << "  |  col : " << mazePath[i].c << "  |  idx : " << i << "\n";
+        }
+    }
+    
+    void printRes() {
+        for(int i = 0; i < colLim; ++i) {
+            cout << " _";
+        } cout << '\n';
+        
+        for(int i = rowLim - 1; i > -1; --i) {
+            cout << "|";
+            for(int j = 0; j < colLim * 2; ++j) {
+                cout << maze[i][j];
+            } cout << '\n';
+        }
+        
+        cout <<"\n";
+    }
+};
+
+int main() {
+    ios_base::sync_with_stdio(false), cin.tie(nullptr);
+    
+    int t;
+    cin >> t;
+    while(t--) {
+        int row, col, startRow, startCol;
+        cin >> row >> col >> startRow >> startCol;
+        Maze ans(row, col, startRow, startCol);
+        
+        bool isEnd = true;
+        char ins;
+        int n = 9;
+        do {
+            cin >> ins;
+            
+            if(ins == 'U') ans.up();
+            if(ins == 'D') ans.down();
+            if(ins == 'L') ans.left();
+            if(ins == 'R') ans.right();
+            if(ins == 'F') {
+                int start;
+                cin >> start;
+                ans.flip(start - 1);
+            }
+            while(ans.killCell());
+            isEnd = !ans.isEmpty();
+            
+        } while(isEnd);
+        
+        // cout << "------------------\n";
+        // ans.print();
+        // cout << "\nres : \n";
+        ans.printRes();
+        // ans.printPath();
+        // ans.printMazePath();
+        
+        // while(isEnd) {
+        //     cin >> ins;
+            
+        //     if(ins == 'U') ans.up();
+        //     if(ins == 'D') ans.down();
+        //     if(ins == 'L') ans.left();
+        //     if(ins == 'R') ans.right();
+        //     if(ins == 'F') {
+        //         int num;
+        //         cin >> num;
+        //         ans.flip(num - 1);
+        //     }
+            
+        //     while(ans.killCell());
+        //     isEnd = !ans.isEmpty();
+        // }
+    }
+    
+    return 0;
+}

@@ -1,0 +1,134 @@
+
+#include <bits/stdc++.h>
+
+using namespace std;
+
+class Fraction {
+    int numerator;
+    int denominator;
+    
+public:
+    Fraction() : numerator(0), denominator(0) {}
+    Fraction(int _numerator, int _denominator) : numerator(_numerator), denominator(_denominator) {
+        irreducible();
+    }
+    
+    void irreducible() {
+        int a = numerator;
+        int b = denominator;
+        
+        while(a != 1) {
+            a = numerator;
+            b = denominator;
+            
+            while(b != 0) {
+                int temp = b;
+                b = a % b;
+                a = temp;
+            }
+            
+            numerator /= a;
+            denominator /= a;
+        }
+    }
+    
+    int getNumerator() const { // return the numerator of the fraction number.
+        return numerator;
+    }
+    
+    int getDenominator() const { // return the denominator of the fraction number.
+        return denominator;
+    }
+    
+    void setNumerator(int _numerator) { // use the parameter to set numerator of the fraction.
+        numerator = _numerator;
+    }
+    
+    void setDenominator(int _denominator) { // use the parameter to set denominator of the fraction.
+        denominator = _denominator;
+    }
+    
+    void display() { // display the irreducible fractions the format "(numerator/denominator)". e.g. (5/9).you should not display denominator if denominator is 1.
+        // irreducible();
+        
+        if(denominator == 1) cout << "(" << numerator << ")\n";
+        else {
+            cout << "(" << numerator << '/' << denominator << ")\n";
+        }
+    }
+    
+    Fraction operator +(const Fraction &in) {
+        Fraction temp = in;
+        int numer = 0, denom = 0;
+        
+        if(temp.getDenominator() != denominator) {
+            denom = temp.getDenominator() * denominator;
+            numer = temp.getNumerator() * denominator + temp.getDenominator() * numerator;
+            
+        } else {
+            denom = denominator;
+            numer = temp.getNumerator() + numerator;
+        }
+        
+        return Fraction(numer, denom);
+    }
+    
+    Fraction operator -(const Fraction &in) {
+        Fraction temp = in;
+        int numer = 0, denom = 0;
+        
+        if(temp.getDenominator() != denominator) {
+            denom = temp.getDenominator() * denominator;
+            numer = temp.getNumerator() * denominator - temp.getDenominator() * numerator;
+            
+        } else {
+            denom = denominator;
+            numer = temp.getNumerator() - numerator;
+        }
+        
+        return Fraction(numer, denom);
+    }
+    
+    Fraction operator *(const Fraction &in) {
+        Fraction temp = in;
+        int numer = 0, denom = 0;
+        
+        denom = temp.getDenominator() * denominator;
+        numer = temp.getNumerator() * numerator;
+        
+        return Fraction(numer, denom);
+    }
+    
+    Fraction operator /(const Fraction &in) {
+        Fraction temp = in;
+        int numer = 0, denom = 0;
+        
+        if(temp.getDenominator() != denominator) {
+            denom = temp.getNumerator() * denominator;
+            numer = temp.getDenominator() * numerator;
+        }
+        
+        return Fraction(numer, denom);
+    }
+    
+    friend Fraction operator !(const Fraction &in) {
+        int numer = in.getNumerator();
+        int denom = in.getDenominator();
+        
+        return Fraction(denom, numer);
+    }
+    
+    Fraction& operator =(const Fraction &in) {
+        numerator = in.getNumerator();
+        denominator = in.getDenominator();
+        
+        return *this;
+    }
+    
+    friend ostream& operator <<(ostream &out, Fraction &self) {
+        if(self.denominator == 1) out << '(' << self.numerator << ')';
+        else out << '(' << self.numerator << '/' << self.denominator << ')';
+        
+        return out;
+    }
+};

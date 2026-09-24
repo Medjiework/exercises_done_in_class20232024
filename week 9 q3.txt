@@ -1,0 +1,47 @@
+// Include standard input/output library
+#include <stdio.h>
+
+int main() {
+  // Initialize global variables
+  init();
+
+  // Declare and initialize string pointers
+  char *str = s1;
+  char *key = s2;
+
+  // Initialize occurrence count to 0
+  int count = 0;
+
+  // Calculate lengths of both strings
+  int len1 = 0;
+  for (int i = 0; str[i] != '\0'; i++) {
+    len1++; // increment length of str
+  }
+  int len2 = 0;
+  for (int i = 0; key[i] != '\0'; i++) {
+    len2++; // increment length of key
+  }
+
+  // Loop through str, checking for occurrences of key
+  for (int i = 0; i <= len1 - len2; i++) {
+    int flag = 0; // flag to indicate mismatch
+
+    // Loop through key to compare characters
+    for (int j = 0; j < len2; j++) {
+      if (str[i + j] != key[j]) {
+        flag = 1; // mismatch found
+        break;
+      }
+    }
+
+    // If no mismatch found, increment occurrence count
+    if (!flag) {
+      count++;
+    }
+  }
+
+  // Print the number of occurrences
+  printf("%d", count);
+
+  return 0;
+}

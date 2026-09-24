@@ -1,0 +1,219 @@
+{\rtf1\ansi\ansicpg1252\cocoartf2820
+\cocoatextscaling0\cocoaplatform0{\fonttbl\f0\fswiss\fcharset0 Helvetica;}
+{\colortbl;\red255\green255\blue255;}
+{\*\expandedcolortbl;;}
+\paperw11900\paperh16840\margl1440\margr1440\vieww11520\viewh8400\viewkind0
+\pard\tx720\tx1440\tx2160\tx2880\tx3600\tx4320\tx5040\tx5760\tx6480\tx7200\tx7920\tx8640\pardirnatural\partightenfactor0
+
+\f0\fs24 \cf0 #include <stdio.h>\
+#include <stdlib.h>\
+#include <string.h>\
+#include <math.h>\
+\
+#define MAX_ENTRIES 2\
+#define MAX_NAME_LEN 50\
+\
+typedef struct \{\
+    double latitude, longitude;\
+    char name[MAX_NAME_LEN];\
+\} DataItem;\
+\
+typedef struct RTreeNode \{\
+    int count;\
+    int isLeaf;\
+    DataItem data[MAX_ENTRIES];\
+    struct RTreeNode* children[MAX_ENTRIES + 1];\
+\} RTreeNode;\
+\
+RTreeNode* root = NULL;\
+\
+// Create a new node\
+RTreeNode* createNode(int isLeaf) \{\
+    RTreeNode* node = (RTreeNode*)malloc(sizeof(RTreeNode));\
+    node->count = 0;\
+    node->isLeaf = isLeaf;\
+    for (int i = 0; i <= MAX_ENTRIES; i++) \{\
+        node->children[i] = NULL;\
+    \}\
+    return node;\
+\}\
+\
+// Calculate Euclidean distance\
+double calculateDistance(double lat1, double lon1, double lat2, double lon2) \{\
+    return sqrt(pow(lat1 - lat2, 2) + pow(lon1 - lon2, 2));\
+\}\
+\
+// Sort data and child pointers by latitude\
+void sortEntries(DataItem* data, RTreeNode** children, int count) \{\
+    for (int i = 0; i < count - 1; i++) \{\
+        for (int j = i + 1; j < count; j++) \{\
+            if (data[i].latitude > data[j].latitude) \{\
+                DataItem temp = data[i];\
+                data[i] = data[j];\
+                data[j] = temp;\
+\
+                if (children) \{\
+                    RTreeNode* tempChild = children[i];\
+                    children[i] = children[j];\
+                    children[j] = tempChild;\
+                \}\
+            \}\
+        \}\
+    \}\
+\}\
+\
+// Split a node and return the new sibling node\
+RTreeNode* splitNode(RTreeNode* node, DataItem* newItem, RTreeNode* newChild) \{\
+    DataItem combinedData[MAX_ENTRIES + 1];\
+    RTreeNode* combinedChildren[MAX_ENTRIES + 2] = \{NULL\};\
+\
+    // Copy existing data and the new entry\
+    for (int i = 0; i < node->count; i++) \{\
+        combinedData[i] = node->data[i];\
+        combinedChildren[i] = node->children[i];\
+    \}\
+    combinedData[node->count] = *newItem;\
+    combinedChildren[node->count] = newChild;\
+    combinedChildren[node->count + 1] = node->children[node->count];\
+\
+    // Sort entries\
+    sortEntries(combinedData, combinedChildren, node->count + 1);\
+\
+    int mid = (node->count + 1) / 2;\
+\
+    // Assign the first half back to the current node\
+    node->count = mid;\
+    for (int i = 0; i < mid; i++) \{\
+        node->data[i] = combinedData[i];\
+        node->children[i] = combinedChildren[i];\
+    \}\
+    node->children[mid] = combinedChildren[mid];\
+\
+    // Create a new node for the second half\
+    RTreeNode* newNode = createNode(node->isLeaf);\
+    for (int i = mid; i < node->count + 1; i++) \{\
+        newNode->data[newNode->count] = combinedData[i];\
+        newNode->children[newNode->count] = combinedChildren[i];\
+        newNode->count++;\
+    \}\
+    newNode->children[newNode->count] = combinedChildren[node->count + 1];\
+\
+    return newNode;\
+\}\
+\
+// Insert a data item into the R-Tree\
+void insertItem(RTreeNode** node, DataItem* newItem) \{\
+    if (*node == NULL) \{\
+        *node = createNode(1);\
+    \}\
+\
+    RTreeNode* current = *node;\
+\
+    if (current->isLeaf) \{\
+        if (current->count < MAX_ENTRIES) \{\
+            current->data[current->count++] = *newItem;\
+            sortEntries(current->data, NULL, current->count);\
+        \} else \{\
+            RTreeNode* newNode = splitNode(current, newItem, NULL);\
+            RTreeNode* newRoot = createNode(0);\
+            newRoot->data[0] = newNode->data[0];\
+            newRoot->children[0] = current;\
+            newRoot->children[1] = newNode;\
+            newRoot->count = 1;\
+            *node = newRoot;\
+        \}\
+    \} else \{\
+        int i;\
+        for (i = 0; i < current->count; i++) \{\
+            if (newItem->latitude < current->data[i].latitude) break;\
+        \}\
+        insertItem(&current->children[i], newItem);\
+\
+        if (current->children[i]->count > MAX_ENTRIES) \{\
+            RTreeNode* newNode = splitNode(current->children[i], &current->children[i]->data[MAX_ENTRIES / 2], NULL);\
+            current->data[current->count] = newNode->data[0];\
+            current->children[current->count + 1] = newNode;\
+            current->count++;\
+            sortEntries(current->data, current->children, current->count);\
+        \}\
+    \}\
+\}\
+\
+// Print the R-Tree structure\
+void printTree(RTreeNode* node, int depth) \{\
+    if (node == NULL) return;\
+\
+    for (int i = 0; i < depth; i++) printf("  ");\
+    printf("Node (count=%d, isLeaf=%d):\\n", node->count, node->isLeaf);\
+\
+    if (node->isLeaf) \{\
+        for (int i = 0; i < node->count; i++) \{\
+            for (int j = 0; j < depth + 1; j++) printf("  ");\
+            printf("Data: %s (%.2f, %.2f)\\n", node->data[i].name, node->data[i].latitude, node->data[i].longitude);\
+        \}\
+    \} else \{\
+        for (int i = 0; i < node->count; i++) \{\
+            printTree(node->children[i], depth + 1);\
+            for (int j = 0; j < depth + 1; j++) printf("  ");\
+            printf("Key: %s\\n", node->data[i].name);\
+        \}\
+        printTree(node->children[node->count], depth + 1);\
+    \}\
+\}\
+\
+// Search for the two nearest neighbors\
+void searchTree(RTreeNode* node, double latitude, double longitude) \{\
+    if (node == NULL) return;\
+\
+    DataItem results[2];\
+    double distances[2] = \{1e9, 1e9\};\
+\
+    for (int i = 0; i < node->count; i++) \{\
+        double dist = calculateDistance(latitude, longitude, node->data[i].latitude, node->data[i].longitude);\
+\
+        if (dist < distances[0]) \{\
+            distances[1] = distances[0];\
+            results[1] = results[0];\
+            distances[0] = dist;\
+            results[0] = node->data[i];\
+        \} else if (dist < distances[1]) \{\
+            distances[1] = dist;\
+            results[1] = node->data[i];\
+        \}\
+    \}\
+\
+    printf("Nearest neighbors:\\n");\
+    for (int i = 0; i < 2; i++) \{\
+        printf("%s (%.2f, %.2f) - Distance: %.2f\\n", results[i].name, results[i].latitude, results[i].longitude, distances[i]);\
+    \}\
+\}\
+\
+// Main function\
+int main() \{\
+    char command[50];\
+    double latitude, longitude;\
+    char name[MAX_NAME_LEN];\
+    DataItem newItem;\
+\
+    while (1) \{\
+        if (scanf("%s", command) != 1) break;\
+\
+        if (strcmp(command, "insert") == 0) \{\
+            scanf("%lf %lf %s", &latitude, &longitude, name);\
+            newItem.latitude = latitude;\
+            newItem.longitude = longitude;\
+            strcpy(newItem.name, name);\
+            insertItem(&root, &newItem);\
+        \} else if (strcmp(command, "print") == 0) \{\
+            printTree(root, 0);\
+        \} else if (strcmp(command, "search") == 0) \{\
+            scanf("%lf %lf", &latitude, &longitude);\
+            searchTree(root, latitude, longitude);\
+        \} else if (strcmp(command, "exit") == 0) \{\
+            break;\
+        \}\
+    \}\
+\
+    return 0;\
+\}\
+}
